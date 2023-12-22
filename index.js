@@ -1,7 +1,7 @@
 const numberOfParticles = 6000;
 
 const particleImage = "https://motionarray.imgix.net/preview-34649aJ93evd9dG_0008.jpg?w=660&q=60&fit=max&auto=format",
-    particleColor = "0xffffff",
+    particleColor = "0xFFFFFF",
     particleSize = 0.2;
 
 const defaultAnimationSpeed = 1,
@@ -17,18 +17,19 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-window.addEventListener("resize", fullScreen, false);
-
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-
-function fullScreen()
+function fullScreen() 
 {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+window.addEventListener("resize", fullScreen, false);
+
+var scene = new THREE.Scene();
+
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
 
 camera.position.y = 25;
 camera.position.z = 36;
@@ -61,34 +62,18 @@ var geometry = new THREE.SphereGeometry(5, 30, 30);
 
 spherePoints = THREE.GeometryUtils.randomPointsInGeometry(geometry, particleCount);
 
-var geometry = new THREE.GeometryUtils.randomPointsInGeometry(geometry, particleCount);
+var geometry = new THREE.BoxGeometry(9, 9, 9);
+
+cubePoints = THREE.GeometryUtils.randomPointsInGeometry(geometry, particleCount);
 
 const codepenAssetUrl = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/605067/";
 
 var objLoader = new THREE.OBJLoader();
 objLoader.setPath(codepenAssetUrl);
-
-function createVertices(emptyArray, points, yOffset = 0, trigger = null)
+objLoader.load("CartoonRocket.obj", function (object) 
 {
-    for (var p = 0; p < particleCount; p++)
-    {
-        var vertex = new THREE.Vector3();
-        vertex.x = points[p]["x"];
-        vertex.y = points[p]["y"] - yOffset;
-        vertex.z = points[p]["z"];
-
-        emptyArray.vertices.push(vertex);
-    }
-
-    if (trigger !== null)
-    {
-        triggers[trigger].setAttribute("data-disabled", false)
-    }
-}
-
-objLoader.load("CartoonRocket.obj", function(object) {
-    object.traverse(function(child) {
-        if (child instanceof THREE.Mesh)
+    object.traverse(function (child) {
+        if (child instanceof THREE.Mesh) 
         {
             let scale = 2.1;
             let area = new THREE.Box3();
@@ -99,12 +84,15 @@ objLoader.load("CartoonRocket.obj", function(object) {
             rocketPoints = THREE.GeometryUtils.randomPointsInBufferGeometry(child.geometry, particleCount);
             createVertices(rocketParticles, rocketPoints, yOffset, 2);
         }
-    })
+    });
 });
 
-objLoader.load("Astronaut.obj", function(object) {
-    object.traverse(function(child) {
-        if (child instanceof THREE.Mesh)
+var objLoader = new THREE.OBJLoader();
+objLoader.setPath(codepenAssetUrl);
+objLoader.load("Astronaut.obj", function (object) 
+{
+    object.traverse(function (child) {
+        if (child instanceof THREE.Mesh) 
         {
             let scale = 4.6;
             let area = new THREE.Box3();
@@ -115,10 +103,10 @@ objLoader.load("Astronaut.obj", function(object) {
             spacemanPoints = THREE.GeometryUtils.randomPointsInBufferGeometry(child.geometry, particleCount);
             createVertices(spacemanParticles, spacemanPoints, yOffset, 3);
         }
-    })
+    });
 });
 
-for (var p = 0; p < particleCount; p++)
+for (var p = 0; p < particleCount; p++) 
 {
     var vertex = new THREE.Vector3();
     vertex.x = 0;
@@ -126,10 +114,30 @@ for (var p = 0; p < particleCount; p++)
     vertex.z = 0;
 
     particles.vertices.push(vertex);
+
 }
 
 createVertices(sphereParticles, spherePoints, null, null);
 createVertices(cubeParticles, cubePoints, null, 1);
+
+function createVertices(emptyArray, points, yOffset = 0, trigger = null) 
+{
+    for (var p = 0; p < particleCount; p++) 
+    {
+        var vertex = new THREE.Vector3();
+        vertex.x = points[p]["x"];
+        vertex.y = points[p]["y"] - yOffset;
+        vertex.z = points[p]["z"];
+
+        emptyArray.vertices.push(vertex);
+    }
+
+    if (trigger !== null) 
+    {
+        triggers[trigger].setAttribute("data-disabled", false);
+    }
+
+}
 
 var particleSystem = new THREE.PointCloud(
     particles,
@@ -140,14 +148,14 @@ particleSystem.sortParticles = true;
 
 scene.add(particleSystem);
 
-const normalSpeed = defaultAnimationSpeed / 100;
-const fullSpeed = morphAnimationSpeed / 100;
+const normalSpeed = (defaultAnimationSpeed / 100),
+    fullSpeed = (morphAnimationSpeed / 100);
 
 let animationVars = {
     speed: normalSpeed
-};
+}
 
-function animate()
+function animate() 
 {
     stats.begin();
     particleSystem.rotation.y += animationVars.speed;
@@ -158,52 +166,54 @@ function animate()
     renderer.render(scene, camera);
 }
 
-function toSpace()
-{
-    handleTriggers(3);
-    morphTo(spacemanParticles);
-}
+animate();
+setTimeout(toSphere, 500);
 
-function toRocket()
-{
-    handleTriggers(2);
-    morphTo(rocketParticles);
-}
-
-function toCube()
-{
-    handleTriggers(1);
-    morphTo(cubeParticles);
-}
-
-function toSphere()
+function toSphere() 
 {
     handleTriggers(0);
     morphTo(sphereParticles);
 }
 
-function morphTo(newParticles, color = "0xffffff")
+function toCube() 
+{
+    handleTriggers(1);
+    morphTo(cubeParticles);
+}
+
+function toRocket() 
+{
+    handleTriggers(2);
+    morphTo(rocketParticles);
+}
+
+function toSpaceman() 
+{
+    handleTriggers(3);
+    morphTo(spacemanParticles);
+}
+
+function morphTo(newParticles, color = "0xffffff") 
 {
     TweenMax.to(animationVars, 0.3, {
         ease: Power4.easeIn,
-        speed: fullspeed,
+        speed: fullSpeed,
         onComplete: slowDown
     });
-
     particleSystem.material.color.setHex(color);
 
-    for (var i = 0; i < particles.vertices.length; i++)
+    for (var i = 0; i < particles.vertices.length; i++) 
     {
-        TweenMax.to(particles.verices[i], 4, {
+        TweenMax.to(particles.vertices[i], 4, {
             ease: Elastic.easeOut.config(1, 0.75),
             x: newParticles.vertices[i].x,
             y: newParticles.vertices[i].y,
             z: newParticles.vertices[i].z
-        });
+        })
     }
 }
 
-function slowDown()
+function slowDown() 
 {
     TweenMax.to(animationVars, 4, {
         ease: Power2.easeOut,
@@ -212,25 +222,22 @@ function slowDown()
     });
 }
 
-function handleTriggers(disable)
+triggers[0].addEventListener("click", toSphere);
+triggers[1].addEventListener("click", toCube);
+triggers[2].addEventListener("click", toRocket);
+triggers[3].addEventListener("click", toSpaceman);
+
+function handleTriggers(disable) 
 {
-    for (var x = 0; x < triggers.length; x++)
+    for (var x = 0; x < triggers.length; x++) 
     {
-        if (disable === x)
+        if (disable === x) 
         {
             triggers[x].setAttribute("data-disabled", true);
-        }
-        else
+        } 
+        else 
         {
             triggers[x].setAttribute("data-disabled", false);
         }
     }
 }
-
-triggers[0].addEventListener("click", toSphere);
-triggers[1].addEventListener("click", toCube);
-triggers[2].addEventListener("click", toRocket);
-triggers[3].addEventListener("click", toSpace);
-
-animate();
-setTimeout(toSphere, 500);
